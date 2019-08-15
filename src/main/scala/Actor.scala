@@ -71,11 +71,10 @@ object patterns {
 
     val respPromise = Promise[Resp]()
     val respFuture = respPromise.future
-
     val pipe = ActorPipe[Resp]()
     val askProcess = {
       pdsl.send(srv, query(pipe.ref)) >>
-      pdsl.receive(pipe.mbox) { msg: Resp =>
+      pdsl.receive(pipe.mbox) { (msg: Resp) =>
         respPromise.success(msg)
         pdsl.nil
       }
