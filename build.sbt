@@ -42,7 +42,7 @@ lazy val benchmarks = project
     scalaVersion := dottyVersion,
 
     libraryDependencies ++= Seq(
-        ("com.typesafe.akka" %% "akka-actor-typed" % "2.5.17").withDottyCompat(scalaVersion.value).
+        ("com.typesafe.akka" %% "akka-actor-typed" % "2.5.24").withDottyCompat(scalaVersion.value).
         exclude("org.scala-lang.modules", "scala-java8-compat_2.12")
     ),
 

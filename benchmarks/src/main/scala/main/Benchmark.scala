@@ -10,8 +10,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import java.io.{BufferedWriter, FileWriter}
 
-import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayDeque
 import scala.util.Random
 
 import scala.language.implicitConversions
@@ -114,7 +114,7 @@ object Main {
       BenchmarkFun(
         (param: (Int, Int)) => effpib.Chameneos.bench(param, () => ProcessSystemStateMachineMultiStep()),
         (param: (Int, Int)) => effpib.Chameneos.bench(param, () => ProcessSystemRunnerImproved()),
-        (param: (Int, Int)) => akkab.Chameneos.bench(param)
+        (param: (Int, Int)) => Long.MaxValue //akkab.Chameneos.bench(param)
       )
     ),
     COUNTING -> Benchmark(
@@ -125,7 +125,7 @@ object Main {
       BenchmarkFun(
         (param: Int) => effpib.CountingActor.bench(param, () => ProcessSystemStateMachineMultiStep()),
         (param: Int) => effpib.CountingActor.bench(param, () => ProcessSystemRunnerImproved()),
-        (param: Int) => akkab.CountingActor.bench(param)
+        (param: Int) => Long.MaxValue //akkab.CountingActor.bench(param)
       )
     ),
     FORKJOIN_CREATION -> Benchmark(
@@ -147,7 +147,7 @@ object Main {
       BenchmarkFun(
         (param: (Int, Int)) => effpib.ForkJoinThroughput.bench(param, () => ProcessSystemStateMachineMultiStep()),
         (param: (Int, Int)) => effpib.ForkJoinThroughput.bench(param, () => ProcessSystemRunnerImproved()),
-        (param: (Int, Int)) => akkab.ForkJoinThroughput.bench(param)
+        (param: (Int, Int)) => Long.MaxValue //akkab.ForkJoinThroughput.bench(param)
       )
     ),
     PINGPONG -> Benchmark(
@@ -169,7 +169,7 @@ object Main {
       BenchmarkFun(
         (param: (Int, Int, Int)) => effpib.Ring.bench(param, () => ProcessSystemStateMachineMultiStep()),
         (param: (Int, Int, Int)) => effpib.Ring.bench(param, () => ProcessSystemRunnerImproved()),
-        (param: (Int, Int, Int)) => akkab.Ring.bench(param)
+        (param: (Int, Int, Int)) => Long.MaxValue //akkab.Ring.bench(param)
       )
     ),
     RINGSTREAM -> Benchmark(
@@ -182,7 +182,7 @@ object Main {
       BenchmarkFun(
         (param: (Int, Int, Int)) => effpib.Ring.bench(param, () => ProcessSystemStateMachineMultiStep()),
         (param: (Int, Int, Int)) => effpib.Ring.bench(param, () => ProcessSystemRunnerImproved()),
-        (param: (Int, Int, Int)) => akkab.Ring.bench(param)
+        (param: (Int, Int, Int)) => Long.MaxValue //akkab.Ring.bench(param)
       )
     )
   )
@@ -229,7 +229,6 @@ object Main {
     import javax.management.openmbean.CompositeData
     import com.sun.management.{GarbageCollectionNotificationInfo => GCNInfo}
     import java.lang.management.GarbageCollectorMXBean
-    import scala.collection.mutable.MutableList
 
     if (!sizeBenchmarks.keySet.contains(benchName)) {
       throw new RuntimeException(s"Unsupported benchmark: ${benchName}")
@@ -241,10 +240,10 @@ object Main {
     val params = if (reduced) benchmark.params.take(2) else benchmark.params
 
     val gcBeans = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()
-    println(s"Garbage collector beans: ${gcBeans.map(_.getName).toList}")
+    println(s"Garbage collector beans: ${gcBeans.asScala.map(_.getName).toList}")
 
     // Will contain a map from GCs to memory usage values (in bytes)
-    val usedMem = Map((gcBeans.map { b => (b, MutableList[Long]()) }):_*)
+    val usedMem = Map((gcBeans.asScala.map { b => (b, ArrayDeque[Long]()) }.toSeq):_*)
 
     val listener = new NotificationListener() {
       override def handleNotification(n: Notification, emitter: Object) = {
@@ -252,20 +251,20 @@ object Main {
           val gc = emitter.asInstanceOf[GarbageCollectorMXBean]
           val info = GCNInfo.from(n.getUserData.asInstanceOf[CompositeData])
           val usage = info.getGcInfo.getMemoryUsageBeforeGc
-          usedMem(gc) += usage.values.map(_.getUsed).fold(0L)((x,y) => x+y)
+          usedMem(gc) += usage.values.asScala.map(_.getUsed).fold(0L)((x,y) => x+y)
         }
       }
     }
 
     def attachGCListener() = {
-      gcBeans.foreach { g =>
+      gcBeans.asScala.foreach { g =>
         val emitter = g.asInstanceOf[NotificationEmitter]
         emitter.addNotificationListener(listener, null, emitter)
       }
     }
 
     def detachGCListener() = {
-      gcBeans.foreach { g =>
+      gcBeans.asScala.foreach { g =>
         val emitter = g.asInstanceOf[NotificationEmitter]
         emitter.removeNotificationListener(listener)
       }
