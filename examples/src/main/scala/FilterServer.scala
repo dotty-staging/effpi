@@ -52,7 +52,7 @@ package object implementation {
             lastForwarded = i2
             send(o, y) >>
             loop(RecX)
-          } 
+          }
         }
       }
     }
@@ -71,7 +71,7 @@ package object implementation {
         } else {
           send(o, y) >>
           loop(RecX)
-        } 
+        }
       }
     }
   }
@@ -89,12 +89,12 @@ package object implementation {
     par(
       producer(data1),
       producer(data2),
-      receive(cm) { code: FilterCode => 
+      receive(cm) { (code: FilterCode) =>
         code(data1, data2, o)
       }
     )
   }
-} 
+}
 
 // To run this example, try:
 //   sbt "examples/runMain effpi.examples.filterserver.Main"

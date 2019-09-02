@@ -51,7 +51,7 @@ package object implementation {
   @verify(property = "reactive(mb_)(aud) && responsive(mb_)(aud) && output_eventually_followed(aud)(Accepted)(mb_)")
   def payment(aud: ActorRef[Audit[_]]): Actor[Pay, Payment[aud.type]] = {
     forever {
-      read { pay: Pay =>
+      read { (pay: Pay) =>
         if (pay.amount > 42000) {
           send(pay.replyTo, Rejected())
         } else {
@@ -64,7 +64,7 @@ package object implementation {
 
   def auditor: Actor[Audit[_], Process] = forever {
     println(s"Auditor: waiting for notification...")
-    read { audit: Audit[_] =>
+    read { (audit: Audit[_]) =>
       println(s"Auditor: received notification for payment: ${audit.payment}")
       nil
     }
@@ -73,7 +73,7 @@ package object implementation {
   def client(id: Int, pay: ActorRef[Pay], amount: Int): Actor[Result, Process] = {
     println(s"Client: trying to pay €${amount}...")
     send(pay, Pay(amount, self)) >>
-    read { result: Result =>
+    read { (result: Result) =>
       result match {
         case Accepted() => {
           println(s"Client ${id}: payment of €${amount} accepted")
@@ -101,7 +101,7 @@ object Main {
     println("Running demo...")
     val auditRef = Actor.spawn(Behavior[Audit[_], Process](auditor))
     val paymentRef = Actor.spawn(Behavior[Pay, Process](payment(auditRef)))
-    
+
     for (i <- 1 to 10) {
       Actor.spawn(Behavior[Result, Process](client(i, paymentRef, i * 10000)))
     }

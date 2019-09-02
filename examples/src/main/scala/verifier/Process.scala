@@ -50,7 +50,7 @@ object ProcessVerifExamples {
                (implicit timeout: Duration): Process3Cont[c1.type, c2.type] = {
     println("P2: Sending 42, waiting for answer")
     send(c1, 42) >>
-    receive(c2) { x: String =>
+    receive(c2) { (x: String) =>
       println(s"P2: Received: ${x}")
       nil
     }
@@ -64,7 +64,7 @@ object ProcessVerifExamples {
   //  fork(test3spawn(c1, c2)) >>
   //  test3cont(c1, c2)
   //}
-  
+
   @verify(property = "no_output_use(c2)")
   def test_no_output_use(c1: Channel[Int],
                          c2: Channel[String]): Out[c1.type, Int] = ???
