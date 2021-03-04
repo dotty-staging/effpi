@@ -28,8 +28,8 @@ lazy val plugin = project
     // TODO: exclude unnecessary dependencies from assembly jar
     libraryDependencies ++= Seq(
       "ch.epfl.lamp" %% "dotty-compiler" % scalaVersion.value % "provided",
-      ("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2").withDottyCompat(scalaVersion.value),
-      ("org.clapper" %% "scalasti" % "3.0.1").withDottyCompat(scalaVersion.value)
+      ("org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2").cross(CrossVersion.for3Use2_13),
+      ("org.clapper" %% "scalasti" % "3.0.1").cross(CrossVersion.for3Use2_13)
     ),
   )
 
@@ -42,12 +42,12 @@ lazy val benchmarks = project
     scalaVersion := dottyVersion,
 
     libraryDependencies ++= Seq(
-        ("com.typesafe.akka" %% "akka-actor-typed" % "2.5.24").withDottyCompat(scalaVersion.value).
+        ("com.typesafe.akka" %% "akka-actor-typed" % "2.5.24").cross(CrossVersion.for3Use2_13).
         exclude("org.scala-lang.modules", "scala-java8-compat_2.12")
     ),
 
     libraryDependencies ++= Seq(
-      ("org.scalikejdbc" %% "scalikejdbc" % "3.3.5").withDottyCompat(scalaVersion.value),
+      ("org.scalikejdbc" %% "scalikejdbc" % "3.3.5").cross(CrossVersion.for3Use2_13),
       "org.xerial"      % "sqlite-jdbc"      % "3.28.0",
       "ch.qos.logback"  % "logback-classic"  % "1.2.3"
     ),
